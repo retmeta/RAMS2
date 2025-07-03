@@ -244,9 +244,9 @@ st.session_state.components = components
 
 # Derived parameters with inflation correction
 sla_cost_per_year_base = sla_cost_total / 5
-# Apply compound inflation correction for year 3 (middle of 5-year period)
+# Apply compound inflation correction for year  (middle of 5-year period)
 inflation_factor = (1 +
-                    inflation_rate / 100)**3  # Compound inflation for year 3
+                    inflation_rate / 100)**5  # Compound inflation for year 3
 sla_cost_per_year = sla_cost_per_year_base * inflation_factor
 
 # Apply inflation to cost components (different rates for SLA vs non-SLA)
@@ -359,7 +359,7 @@ if hasattr(st.session_state,
                 "SLA kosten per jaar (geïndexeerd)",
                 f"€{sla_cost_per_year:,.2f}"
             ], ["Inflatie percentage (per jaar)", f"{inflation_rate:.1f}%"],
-            ["Inflatie factor (3 jaar compound)", f"{inflation_factor:.2f}x"],
+            ["Inflatie factor (5 jaar compound)", f"{inflation_factor:.2f}x"],
             ["Oproepkosten Met SLA (basis)", f"€{callout_fee_sla}"],
             [
                 "Oproepkosten Met SLA (geïndexeerd)",
@@ -665,7 +665,7 @@ Simulatie Parameters:
 - Aantal simulaties: {n_simulations:,}
 - SLA kosten (5 jaar): €{sla_cost_total:,}
 - SLA kosten (per jaar): €{sla_cost_per_year:,.2f}
-- Inflatie factor (3 jaar compound): {inflation_factor:.2f}x
+- Inflatie factor (5 jaar compound): {inflation_factor:.2f}x
 - Inflatie percentage (per jaar): {inflation_rate:.1f}%
 
 Kosten Met SLA:
@@ -794,7 +794,7 @@ else:
                 'Totale SLA kosten (5 jaar)', 'SLA kosten per jaar (basis)',
                 'SLA kosten per jaar (met inflatie)',
                 'Inflatie percentage (per jaar)',
-                'Inflatie factor (3 jaar compound)',
+                'Inflatie factor (5 jaar compound)',
                 'Oproepkosten Met SLA (basis)',
                 'Oproepkosten Met SLA (geïndexeerd)',
                 'Oproepkosten Zonder SLA (basis)',
