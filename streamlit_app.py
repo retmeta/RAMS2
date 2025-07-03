@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 st.title("RAMS en SLA van Optical Repeater incl. SLA kosten")
-st.markdown("Welkom in deze vergelijking tool. Ik heb hem heel snel gecreeered en het is niet 100% getest. Het kan zijn dat er fouten ergens :-) ")
+st.markdown("Welkom in deze vergelijking tool. Ik heb hem heel snel gecreeërd en het is niet 100% getest. Het kan zijn dat er fouten ergens :-) ")
 st.markdown("Hier draait een Monte Carlo simulatie de MTBF en vergelijkt de SLA gegevens die door de gebruiker worden ingevuld.")
 
 # --- Helper Functions ---
@@ -41,7 +41,6 @@ def simulate(
             mtbf = params["MTBF"]
             mttr = params[mttr_key]
 
-            # Number of failures this year
             num_failures = np.random.poisson(hours_per_year / mtbf)
 
             if num_failures > 0:
@@ -53,7 +52,6 @@ def simulate(
         total_cost.append(cost)
 
     return np.array(total_downtime), np.array(total_cost)
-
 
 # --- Sidebar Inputs ---
 st.sidebar.header("Simulatie Parameters")
@@ -74,11 +72,9 @@ for name, params in components.items():
     params["MTTR_no_SLA"] = st.sidebar.number_input(f"{name} - MTTR zonder SLA (uren)", 1, 200, params["MTTR_no_SLA"])
     params["MTTR_with_SLA"] = st.sidebar.number_input(f"{name} - MTTR met SLA (uren)", 1, 100, params["MTTR_with_SLA"])
 
-# Cost parameters
 sla_cost_total = st.sidebar.number_input("Totale SLA kosten (5 jaar) (€)", 100, 20_000, 8_665, step=50)
 inflation_rate = st.sidebar.number_input("Inflatie per jaar (%)", 0.0, 10.0, 4.5, step=0.1)
 
-# Simulation parameters
 n_simulations = st.sidebar.number_input("Aantal simulaties", 1_000, 50_000, 10_000, step=1_000)
 
 # --- Run Simulation ---
@@ -87,7 +83,6 @@ if st.sidebar.button("Start Simulatie", type="primary"):
         inflation_factor = (1 + inflation_rate / 100) ** 3
         sla_cost_per_year = (sla_cost_total / 5) * inflation_factor
 
-        # Simulate
         downtime_no_sla, costs_no_sla = simulate(
             components, "MTTR_no_SLA", False, n_simulations,
             sla_cost_per_year, callout=250, engineer_hourly=150
@@ -97,7 +92,6 @@ if st.sidebar.button("Start Simulatie", type="primary"):
             sla_cost_per_year, callout=175, engineer_hourly=110
         )
 
-        # Store in session
         st.session_state["results"] = {
             "downtime_no_sla": downtime_no_sla,
             "costs_no_sla": costs_no_sla,
@@ -108,8 +102,7 @@ if st.sidebar.button("Start Simulatie", type="primary"):
 # --- Display Results ---
 if "results" in st.session_state:
     res = st.session_state["results"]
-    
-    # Key Metrics
+
     st.header("Belangrijkste Resultaten")
     col1, col2 = st.columns(2)
     with col1:
@@ -119,11 +112,9 @@ if "results" in st.session_state:
         st.metric("Gem. Downtime (Met SLA)", f"{np.mean(res['downtime_with_sla']):.1f} uren")
         st.metric("Gem. Kosten (Met SLA)", f"€{np.mean(res['costs_with_sla']):,.0f}")
 
-    # --- Meest Waarschijnlijke Downtime ---
     st.header("Meest Waarschijnlijke Downtime")
     col1, col2 = st.columns(2)
     with col1:
-        # Mode and Median for downtime_no_sla
         hist, bin_edges = np.histogram(res['downtime_no_sla'], bins=50)
         mode_bin = np.argmax(hist)
         mode_downtime = (bin_edges[mode_bin] + bin_edges[mode_bin + 1]) / 2
@@ -132,7 +123,6 @@ if "results" in st.session_state:
         st.metric("Mediaan Downtime (Zonder SLA)", f"{median_downtime:.1f} uren")
         st.metric("Meest Voorkomende Downtime (Zonder SLA)", f"{mode_downtime:.1f} uren")
     with col2:
-        # Mode and Median for downtime_with_sla
         hist, bin_edges = np.histogram(res['downtime_with_sla'], bins=50)
         mode_bin = np.argmax(hist)
         mode_downtime = (bin_edges[mode_bin] + bin_edges[mode_bin + 1]) / 2
@@ -141,7 +131,6 @@ if "results" in st.session_state:
         st.metric("Mediaan Downtime (Met SLA)", f"{median_downtime:.1f} uren")
         st.metric("Meest Voorkomende Downtime (Met SLA)", f"{mode_downtime:.1f} uren")
 
-    # --- Kansberekening Downtime ---
     st.header("Kansberekening Downtime")
     col1, col2 = st.columns(2)
     with col1:
@@ -156,20 +145,45 @@ if "results" in st.session_state:
         df_with_sla = pd.DataFrame(data_with_sla, columns=["Kans", "Downtime"])
         st.dataframe(df_with_sla, use_container_width=True, hide_index=True)
 
-    # --- Downtime Distribution Plot ---
-    st.subheader("Downtime Verdeling")
-    fig = go.Figure()
-    fig.add_trace(go.Histogram(x=res['downtime_no_sla'], name="Zonder SLA", opacity=0.6, marker_color="red"))
-    fig.add_trace(go.Histogram(x=res['downtime_with_sla'], name="Met SLA", opacity=0.6, marker_color="green"))
-    fig.update_layout(barmode='overlay', xaxis_title="Downtime (uren)", yaxis_title="Frequentie")
-    st.plotly_chart(fig, use_container_width=True)
-
-    # --- Cost Comparison Box Plot ---
-    st.subheader("Kosten Vergelijking")
-    df_costs = pd.DataFrame({
-        "Scenario": ["Zonder SLA"] * n_simulations + ["Met SLA"] * n_simulations,
-        "Kosten": np.concatenate([res['costs_no_sla'], res['costs_with_sla']])
+    st.header("Statistische Samenvatting")
+    summary_df = pd.DataFrame({
+        'Statistiek': ['Gemiddelde', 'Mediaan', 'Standaardafwijking', '95e Percentiel'],
+        'Downtime Zonder SLA': [
+            f"{np.mean(res['downtime_no_sla']):.1f}u",
+            f"{np.median(res['downtime_no_sla']):.1f}u",
+            f"{np.std(res['downtime_no_sla']):.1f}u",
+            f"{np.percentile(res['downtime_no_sla'], 95):.1f}u",
+        ],
+        'Downtime Met SLA': [
+            f"{np.mean(res['downtime_with_sla']):.1f}u",
+            f"{np.median(res['downtime_with_sla']):.1f}u",
+            f"{np.std(res['downtime_with_sla']):.1f}u",
+            f"{np.percentile(res['downtime_with_sla'], 95):.1f}u",
+        ],
+        'Kosten Zonder SLA': [
+            f"€{np.mean(res['costs_no_sla']):,.0f}",
+            f"€{np.median(res['costs_no_sla']):,.0f}",
+            f"€{np.std(res['costs_no_sla']):,.0f}",
+            f"€{np.percentile(res['costs_no_sla'], 95):,.0f}",
+        ],
+        'Kosten Met SLA': [
+            f"€{np.mean(res['costs_with_sla']):,.0f}",
+            f"€{np.median(res['costs_with_sla']):,.0f}",
+            f"€{np.std(res['costs_with_sla']):,.0f}",
+            f"€{np.percentile(res['costs_with_sla'], 95):,.0f}",
+        ],
     })
-    fig_box = px.box(df_costs, x="Scenario", y="Kosten", color="Scenario",
-                     color_discrete_map={"Zonder SLA": "red", "Met SLA": "green"})
-    st.plotly_chart(fig_box, use_container_width=True)
+    st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
+    st.header("Download Resultaten")
+    csv = pd.DataFrame({
+        'Downtime_Zonder_SLA': res['downtime_no_sla'],
+        'Kosten_Zonder_SLA': res['costs_no_sla'],
+        'Downtime_Met_SLA': res['downtime_with_sla'],
+        'Kosten_Met_SLA': res['costs_with_sla']
+    }).to_csv(index=False)
+
+    txt_summary = summary_df.to_string(index=False)
+
+    st.download_button("Download Simulatie Resultaten (CSV)", csv, "simulatie_resultaten.csv", "text/csv")
+    st.download_button("Download Samenvatting (TXT)", txt_summary, "simulatie_samenvatting.txt", "text/plain")
