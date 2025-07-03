@@ -6,12 +6,13 @@ import plotly.graph_objects as go
 
 # --- Configuration ---
 st.set_page_config(
-    page_title="IT Infrastructure Reliability Analysis",
+    page_title="RET Infrastructure Reliability Analysis",
     layout="wide"
 )
 
 st.title("RAMS en SLA van Optical Repeater incl. SLA kosten")
-st.markdown("Monte Carlo simulatie voor infrastructuur betrouwbaarheidsanalyse met SLA vergelijking")
+st.markdown("Welkom in deze vergelijking tool. Ik heb hem heel snel gecreeered en het is niet 100% getest. Het kan zijn dat er fouten ergens :-) ")
+st.markdown("Hier draait een Monte Carlo simulatie de MTBF en vergelijkt de SLA gegevens die door de gebruiker worden ingevuld.")
 
 # --- Helper Functions ---
 @st.cache_data
