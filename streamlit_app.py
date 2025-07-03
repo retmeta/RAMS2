@@ -97,11 +97,11 @@ if 'components' not in st.session_state:
         "Repeater": {
             "MTBF": 100000,
             "MTTR_no_SLA": 72,
-            "MTTR_with_SLA": 12
+            "MTTR_with_SLA": 16
         },
         "Voeding/UPS": {
             "MTBF": 50000,
-            "MTTR_no_SLA": 48,
+            "MTTR_no_SLA": 30,
             "MTTR_with_SLA": 8
         },
         "Glasvezel": {
@@ -111,7 +111,7 @@ if 'components' not in st.session_state:
         },
         "Omgevingsfactoren": {
             "MTBF": 50000,
-            "MTTR_no_SLA": 48,
+            "MTTR_no_SLA": 30,
             "MTTR_with_SLA": 10
         }
     }
