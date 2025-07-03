@@ -7,14 +7,14 @@ from plotly.subplots import make_subplots
 import io
 
 # Page configuration
-st.set_page_config(page_title="IT Infrastructure Reliability Analysis",
-                   page_icon="",
-                   layout="wide")
+st.set_page_config(
+    page_title="RET Infrastructure Reliability Analysis",
+    layout="wide"
+)
 
 st.title("RAMS en SLA van Optical Repeater incl. SLA kosten")
-st.markdown(
-    "Monte Carlo simulatie voor infrastructuur betrouwbaarheidsanalyse met SLA vergelijking"
-)
+st.markdown("Welkom in deze vergelijking tool. Ik heb hem heel snel gecreeërd en het is niet 100% getest. Het kan zijn dat er fouten ergens :-)")
+st.markdown("Hier draait een Monte Carlo simulatie de MTBF en vergelijkt de SLA gegevens die door de gebruiker worden ingevuld.")
 
 # Mathematical Formulas Section
 st.header("Wiskundige Formules")
@@ -182,17 +182,17 @@ callout_fee_no_sla = st.sidebar.number_input(
     "Oproepkosten per incident (Zonder SLA) (€)",
     min_value=50,
     max_value=500,
-    value=250,
-    step=25,
-    help="Hogere kosten zonder SLA contract")
+    value=100,
+    step=1,
+    help="Eigen RET mensen, kosten zjin lager")
 
 engineer_cost_per_hour_no_sla = st.sidebar.number_input(
     "Monteur kosten per uur (Zonder SLA) (€)",
     min_value=50,
     max_value=300,
-    value=150,
-    step=10,
-    help="Hogere kosten zonder SLA contract")
+    value=88,
+    step=1,
+    help="Eigen RET mensen, kosten zjin lager")
 
 # Simulation parameters
 st.sidebar.header("Simulatie Parameters")
