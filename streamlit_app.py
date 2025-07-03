@@ -570,51 +570,7 @@ if hasattr(st.session_state,
     fig_cost.update_layout(yaxis_title="Kosten (€)")
     st.plotly_chart(fig_cost, use_container_width=True)
 
-    # Sensitivity analysis
-    st.subheader("Gevoeligheidsanalyse - MTTR Impact")
 
-    # Create sensitivity analysis for Repeater MTTR
-    mttr_range = np.arange(10, 101, 10)
-    sensitivity_data = []
-
-    components_temp = components.copy()
-    original_mttr = components_temp["Repeater"]["MTTR_no_SLA"]
-
-    for mttr in mttr_range:
-        components_temp["Repeater"]["MTTR_no_SLA"] = int(mttr)
-        _, cost_sim = simulate(components_temp, "MTTR_no_SLA", False, 1000,
-                               sla_cost_per_year, callout_fee_no_sla_indexed,
-                               engineer_cost_per_hour_no_sla_indexed,
-                               seasonal_factor)
-        sensitivity_data.append({
-            'MTTR': mttr,
-            'Average Cost': np.mean(cost_sim)
-        })
-
-    # Restore original MTTR
-    components_temp["Repeater"]["MTTR_no_SLA"] = original_mttr
-
-    sensitivity_df = pd.DataFrame(sensitivity_data)
-
-    fig_sensitivity = px.line(
-        sensitivity_df,
-        x='MTTR',
-        y='Average Cost',
-        title=
-        "Gevoeligheidsanalyse: Repeater MTTR vs. Gemiddelde Kosten (Zonder SLA)",
-        markers=True)
-
-    # Add horizontal line for average cost with SLA
-    fig_sensitivity.add_hline(y=np.mean(st.session_state.costs_with_SLA),
-                              line_dash="dash",
-                              line_color="green",
-                              annotation_text="Gemiddelde kosten met SLA")
-
-    fig_sensitivity.update_layout(
-        xaxis_title="Repeater MTTR (uren)",
-        yaxis_title="Gemiddelde Jaarlijkse Kosten (€)")
-
-    st.plotly_chart(fig_sensitivity, use_container_width=True)
 
     # Break-even analysis
     st.header("Break-even Analyse")
