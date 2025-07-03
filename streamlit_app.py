@@ -719,14 +719,6 @@ Conclusie:
                            file_name="analyse_rapport.txt",
                            mime="text/plain")
 
-    with col3:
-        # Download sensitivity analysis
-        sensitivity_csv = sensitivity_df.to_csv(index=False)
-        st.download_button(label="Download Gevoeligheidsanalyse (CSV)",
-                           data=sensitivity_csv,
-                           file_name="gevoeligheidsanalyse.csv",
-                           mime="text/csv")
-
 else:
     st.info(
         "Configureer parameters in de sidebar en klik op 'Start Simulatie' om de analyse te beginnen."
