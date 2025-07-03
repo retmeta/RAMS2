@@ -26,7 +26,6 @@ def simulate(
     engineer_hourly: float,
     seasonal_factor: float = 1.0
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Run Monte Carlo simulation for infrastructure reliability analysis."""
     np.random.seed(42)
     hours_per_year = 8760 * seasonal_factor
 
@@ -169,3 +168,83 @@ if "results" in st.session_state:
         median_downtime = np.median(res['downtime_with_sla'])
         st.metric("Mediaan Downtime (Met SLA)", f"{median_downtime:.1f} uren")
         st.metric("Meest Voorkomende Downtime (Met SLA)", f"{mode_downtime:.1f} uren")
+
+    st.header("Kansberekening Downtime")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Zonder SLA")
+        percentiles = [25, 50, 75, 90, 95]
+        data_no_sla = [[f"{p}%", f"{np.percentile(res['downtime_no_sla'], p):.1f} uren"] for p in percentiles]
+        df_no_sla = pd.DataFrame(data_no_sla, columns=["Kans", "Downtime"])
+        st.dataframe(df_no_sla, use_container_width=True, hide_index=True)
+    with col2:
+        st.subheader("Met SLA")
+        data_with_sla = [[f"{p}%", f"{np.percentile(res['downtime_with_sla'], p):.1f} uren"] for p in percentiles]
+        df_with_sla = pd.DataFrame(data_with_sla, columns=["Kans", "Downtime"])
+        st.dataframe(df_with_sla, use_container_width=True, hide_index=True)
+
+    st.header("Statistische Samenvatting")
+    summary_df = pd.DataFrame({
+        'Statistiek': ['Gemiddelde', 'Mediaan', 'Standaardafwijking', '95e Percentiel'],
+        'Downtime Zonder SLA': [
+            f"{np.mean(res['downtime_no_sla']):.1f}u",
+            f"{np.median(res['downtime_no_sla']):.1f}u",
+            f"{np.std(res['downtime_no_sla']):.1f}u",
+            f"{np.percentile(res['downtime_no_sla'], 95):.1f}u",
+        ],
+        'Downtime Met SLA': [
+            f"{np.mean(res['downtime_with_sla']):.1f}u",
+            f"{np.median(res['downtime_with_sla']):.1f}u",
+            f"{np.std(res['downtime_with_sla']):.1f}u",
+            f"{np.percentile(res['downtime_with_sla'], 95):.1f}u",
+        ],
+        'Kosten Zonder SLA': [
+            f"€{np.mean(res['costs_no_sla']):,.0f}",
+            f"€{np.median(res['costs_no_sla']):,.0f}",
+            f"€{np.std(res['costs_no_sla']):,.0f}",
+            f"€{np.percentile(res['costs_no_sla'], 95):,.0f}",
+        ],
+        'Kosten Met SLA': [
+            f"€{np.mean(res['costs_with_sla']):,.0f}",
+            f"€{np.median(res['costs_with_sla']):,.0f}",
+            f"€{np.std(res['costs_with_sla']):,.0f}",
+            f"€{np.percentile(res['costs_with_sla'], 95):,.0f}",
+        ],
+    })
+    st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
+    st.header("Downtime Verdeling")
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=res['downtime_no_sla'], name="Zonder SLA", opacity=0.6, marker_color="red"))
+    fig.add_trace(go.Histogram(x=res['downtime_with_sla'], name="Met SLA", opacity=0.6, marker_color="green"))
+    fig.update_layout(
+        barmode='overlay',
+        xaxis_title="Downtime (uren)",
+        yaxis_title="Frequentie",
+        legend=dict(x=0.7, y=0.95)
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.header("Kosten Vergelijking")
+    df_costs = pd.DataFrame({
+        "Scenario": ["Zonder SLA"] * len(res['costs_no_sla']) + ["Met SLA"] * len(res['costs_with_sla']),
+        "Kosten": np.concatenate([res['costs_no_sla'], res['costs_with_sla']])
+    })
+    fig_box = px.box(df_costs, x="Scenario", y="Kosten", color="Scenario",
+                     color_discrete_map={"Zonder SLA": "red", "Met SLA": "green"},
+                     points="all")
+    fig_box.update_layout(yaxis_title="Kosten (€)")
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    st.header("Download Resultaten")
+    csv = pd.DataFrame({
+        'Downtime_Zonder_SLA': res['downtime_no_sla'],
+        'Kosten_Zonder_SLA': res['costs_no_sla'],
+        'Downtime_Met_SLA': res['downtime_with_sla'],
+        'Kosten_Met_SLA': res['costs_with_sla']
+    }).to_csv(index=False)
+
+    txt_summary = summary_df.to_string(index=False)
+
+    st.download_button("Download Simulatie Resultaten (CSV)", csv, "simulatie_resultaten.csv", "text/csv")
+    st.download_button("Download Samenvatting (TXT)", txt_summary, "simulatie_samenvatting.txt", "text/plain")
