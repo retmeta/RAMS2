@@ -742,7 +742,7 @@ else:
     # Show methodology
     st.subheader("Methodologie")
     st.markdown("""
-    Deze applicatie voert Monte Carlo simulatie uit om IT infrastructuur betrouwbaarheid en kosten te analyseren:
+    Deze applicatie voert Monte Carlo simulatie uit om infrastructuur betrouwbaarheid en kosten te analyseren:
     
     **Simulatie Proces:**
     1. Voor elke component worden storingen gemodelleerd met een Poisson distributie gebaseerd op MTBF
